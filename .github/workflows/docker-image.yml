@@ -16,7 +16,7 @@ jobs:
      - name: checkout
        uses: actions/checkout@v4
      - name: build image
-       run: docker build -t nvkhoi1807/auths-2fa-mern-be:latest
+       run: docker build ./ -t nvkhoi1807/auths-2fa-mern-be:latest
      - name: push to docker hub
        run: |
         docker login -u nvkhoi1807 -p ${{ secrets.AUTHS_2FA_MERN_DOCKER_HUB_TOKEN }}
