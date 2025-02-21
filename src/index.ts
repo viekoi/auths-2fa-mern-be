@@ -36,7 +36,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(morgan("combined"));
 }
 app.get(
-  "/",
+  `${BASE_PATH}/`,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     res.status(HTTPSTATUS.OK).json({
       message: "Hello Subscribers!!!",
