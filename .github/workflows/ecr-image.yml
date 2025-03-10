@@ -38,7 +38,6 @@ jobs:
        uses: actions/checkout@v4
        with:
          repository: viekoi/${{ env.GITOPS_REPO_NAME }}
-         path: gitops
          token: ${{ secrets.GITOPS_REPO_PAT }}
      - name: Update Deployment File
        working-directory: kubernetes-manifest/backend
