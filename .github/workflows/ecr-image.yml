@@ -45,6 +45,7 @@ jobs:
          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
          REPOSITORY: auths-2fa-mern-dev-backend
          IMAGE_TAG: ${{ steps.tag.outputs.UNIQUE_TAG }}
+         GITOPS_REPO_PAT: ${{ secrets.GITOPS_REPO_PAT }}
        run: |
          git config --global user.name "viekoi"
          git config --global user.email "vkhoi444@gmail.com"
@@ -52,4 +53,4 @@ jobs:
          sed -i "s|image:.*|image: ${IMAGE_TAG}|" deployment.yml
          git add deployment.yml
          git commit -m "Update image ${IMAGE_TAG}"
-         git push
+         git push https://${GITOPS_REPO_PAT}@github.com/viekoi/${GIT_REPO_NAME} HEAD:master
