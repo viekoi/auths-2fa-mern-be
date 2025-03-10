@@ -50,6 +50,6 @@ jobs:
          git config --global user.email "vkhoi444@gmail.com"
          IMAGE_TAG="${REGISTRY}/${REPOSITORY}:${IMAGE_TAG}"
          sed -i "s|image:.*|image: ${IMAGE_TAG}|" deployment.yml
-         git add deployment.yaml
+         git add deployment.yml
          git commit -m "Update image ${IMAGE_TAG}"
          git push
