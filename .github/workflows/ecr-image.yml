@@ -48,6 +48,8 @@ jobs:
        run: |
          git config --global user.name "viekoi"
          git config --global user.email "vkhoi444@gmail.com"
+         pwd
+         ls
          IMAGE_TAG="${REGISTRY}/${REPOSITORY}:${IMAGE_TAG}"
          sed -i "s|image:.*|image: ${IMAGE_TAG}|" deployment.yaml
          git add deployment.yaml
