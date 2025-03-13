@@ -81,6 +81,7 @@ jobs:
       - name: Update Version File
         env: 
           REPO_NAME: ${{ github.repository }}
+          GITOPS_REPO_PAT: ${{ secrets.GITOPS_REPO_PAT }}
         run: |
           NEW_VERSION="${{ steps.new-version.outputs.NEW_VERSION }}"
           echo "$NEW_VERSION" > version
