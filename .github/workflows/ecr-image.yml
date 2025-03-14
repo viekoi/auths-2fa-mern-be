@@ -13,15 +13,17 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  ECR_REPOSITORY: auths-2fa-mern-dev-backend
+
 jobs:
   build_and_publish_to_ecr:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -33,16 +35,35 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Read Current Version
-        id: current-version
+      - name: Get Latest ECR Tag or Set Default
+        id: get-version
         run: |
-          CURRENT_VERSION=$(cat version)
+          # Get all tags from ECR repository
+          TAGS=$(aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --query 'imageDetails[*].imageTags[*]' \
+            --output text 2>/dev/null || echo "")
+
+          if [ -z "$TAGS" ]; then
+            # If no tags exist, use 0.1.0
+            CURRENT_VERSION="0.1.0"
+            echo "No tags found in ECR, using default: $CURRENT_VERSION"
+          else
+            # Get the latest version by sorting numerically
+            CURRENT_VERSION=$(echo "$TAGS" | tr ' ' '\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+            if [ -z "$CURRENT_VERSION" ]; then
+              CURRENT_VERSION="0.1.0"
+              echo "No valid version tags found, using default: $CURRENT_VERSION"
+            else
+              echo "Latest version found: $CURRENT_VERSION"
+            fi
+          fi
           echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Increment Version
         id: new-version
         run: |
-          CURRENT_VERSION="${{ steps.current-version.outputs.CURRENT_VERSION }}"
+          CURRENT_VERSION="${{ steps.get-version.outputs.CURRENT_VERSION }}"
           VERSION_BUMP="${{ github.event.inputs.version_bump || 'patch' }}"
 
           # Split version into major, minor, patch
@@ -75,20 +96,8 @@ jobs:
       - name: Build, Tag, and Push Docker Image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: auths-2fa-mern-dev-backend
+          REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ steps.new-version.outputs.NEW_VERSION }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-
-      - name: Update Version File
-        env: 
-          REPO_NAME: ${{ github.repository }}
-        run: |
-          NEW_VERSION="${{ steps.new-version.outputs.NEW_VERSION }}"
-          echo "$NEW_VERSION" > version
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add version
-          git commit -m "Bump version to $NEW_VERSION"
-          git push 
