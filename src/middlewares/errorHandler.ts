@@ -25,7 +25,7 @@ export const errorHandler: ErrorRequestHandler = (
 ): any => {
   console.error(`Error occured on PATH: ${req.path}`, error);
 
-  if (req.path === "/api/v1/auth/refresh") {
+  if (req.path === "/auth/refresh") {
     console.log("here");
     clearAuthenticationCookies(res);
   }

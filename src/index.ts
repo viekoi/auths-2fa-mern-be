@@ -44,11 +44,11 @@ app.get(
   })
 );
 
-app.use(`/auth`, authRoutes);
+app.use(`${BASE_PATH}/auth`, authRoutes);
 
-app.use(`/mfa`, mfaRoutes);
+app.use(`${BASE_PATH}/mfa`, mfaRoutes);
 
-app.use(`/session`, authenticateJWT, sessionRoutes);
+app.use(`${BASE_PATH}/session`, authenticateJWT, sessionRoutes);
 
 app.use(errorHandler);
 
