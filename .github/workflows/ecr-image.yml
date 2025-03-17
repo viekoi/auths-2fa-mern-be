@@ -35,7 +35,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get Latest ECR Tag
+      - name: Get Latest ECR Tag or Set Default
         id: get-version
         run: |
           # Get all tags from ECR repository
@@ -45,26 +45,24 @@ jobs:
             --output text 2>/dev/null || echo "")
 
           if [ -z "$TAGS" ]; then
-            # If no tags exist, use 0.1.0 without incrementing
+            # If no tags exist, use 0.1.0
             CURRENT_VERSION="0.1.0"
-            echo "No tags found in ECR, using initial version: $CURRENT_VERSION"
-            echo "NEW_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            echo "No tags found in ECR, using default: $CURRENT_VERSION"
           else
             # Get the latest version by sorting numerically
             CURRENT_VERSION=$(echo "$TAGS" | tr ' ' '\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
             if [ -z "$CURRENT_VERSION" ]; then
               CURRENT_VERSION="0.1.0"
-              echo "No valid version tags found, using initial version: $CURRENT_VERSION"
-              echo "NEW_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+              echo "No valid version tags found, using default: $CURRENT_VERSION"
             else
-              echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
               echo "Latest version found: $CURRENT_VERSION"
             fi
           fi
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Increment Version if Exists
-        id: increment-version
-        if: steps.get-version.outputs.CURRENT_VERSION != ''
+      - name: Increment Version
+        id: new-version
+        if: steps.get-version.outputs.CURRENT_VERSION != "0.1.0"
         run: |
           CURRENT_VERSION="${{ steps.get-version.outputs.CURRENT_VERSION }}"
           VERSION_BUMP="${{ github.event.inputs.version_bump || 'patch' }}"
@@ -108,7 +106,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ env.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ steps.increment-version.outputs.NEW_VERSION || steps.set-version.outputs.NEW_VERSION }}
+          IMAGE_TAG: ${{ steps.new-version.outputs.NEW_VERSION }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG

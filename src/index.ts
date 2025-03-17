@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: [config.APP_ORIGIN, "http://localhost:5173"],
+    origin: [config.APP_ORIGIN, "localhost"],
     credentials: true,
   })
 );
@@ -44,11 +44,11 @@ app.get(
   })
 );
 
-app.use(`${BASE_PATH}/auth`, authRoutes);
+app.use(`/auth`, authRoutes);
 
-app.use(`${BASE_PATH}/mfa`, mfaRoutes);
+app.use(`/mfa`, mfaRoutes);
 
-app.use(`${BASE_PATH}/session`, authenticateJWT, sessionRoutes);
+app.use(`/session`, authenticateJWT, sessionRoutes);
 
 app.use(errorHandler);
 
