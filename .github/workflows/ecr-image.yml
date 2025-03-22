@@ -13,7 +13,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: auths-2fa-mern-dev-backend
+  ECR_REPOSITORY: auths-2fa-mern-backend
 
 jobs:
   build_and_publish_to_ecr:
